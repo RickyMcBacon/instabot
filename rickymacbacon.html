@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Profile Filter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .toggle-checkbox:checked {
+            @apply right-0 border-green-400;
+            right: 0;
+            border-color: #68D391;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            @apply bg-green-400;
+            background-color: #68D391;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fab fa-instagram text-4xl text-pink-600"></i>
+                    <h1 class="text-3xl font-bold text-gray-800">Instagram Profile Filter</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="loginSection" class="flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-lg">
+                        <i class="fas fa-user text-gray-600"></i>
+                        <span class="text-gray-700">Not logged in</span>
+                        <button id="loginBtn" class="ml-2 text-blue-500 hover:text-blue-700">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                    </div>
+                    <button id="historyBtn" class="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-history"></i>
+                        <span>Search History</span>
+                    </button>
+                    <button id="settingsBtn" class="flex items-center space-x-2 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </button>
+                </div>
+            </div>
+            <p class="text-gray-600 mt-2">Filter public Instagram profiles based on your criteria and export to Excel</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column - Configuration -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Search Configuration</h2>
+                
+                <!-- Keywords Section -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-medium text-gray-700">Keywords to search in bios</label>
+                        <div class="flex items-center space-x-2">
+                            <select id="keywordLanguage" class="text-sm border border-gray-300 rounded-md px-2 py-1">
+                                <option value="any">Any language</option>
+                                <option value="en">English</option>
+                                <option value="it">Italian</option>
+                            </select>
+                            <button id="addKeywordBtn" class="text-blue-500 hover:text-blue-700 text-sm">
+                                <i class="fas fa-plus mr-1"></i>Add
+                            </button>
+                        </div>
+                    </div>
+                    <div id="keywordsContainer" class="flex flex-wrap gap-2 mb-2">
+                        <!-- Keywords will be added here -->
+                    </div>
+                    <input type="text" id="keywordInput" placeholder="Enter keyword (Italian or English)" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Accounts Section -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-medium text-gray-700">Accounts to scrape</label>
+                        <button id="addAccountBtn" class="text-blue-500 hover:text-blue-700 text-sm">
+                            <i class="fas fa-plus mr-1"></i>Add
+                        </button>
+                    </div>
+                    <div id="accountsContainer" class="flex flex-wrap gap-2 mb-2">
+                        <!-- Accounts will be added here -->
+                    </div>
+                    <input type="text" id="accountInput" placeholder="Enter Instagram username (without @)" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Hashtags Section -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-medium text-gray-700">Target hashtags</label>
+                        <button id="addHashtagBtn" class="text-blue-500 hover:text-blue-700 text-sm">
+                            <i class="fas fa-plus mr-1"></i>Add
+                        </button>
+                    </div>
+                    <div id="hashtagsContainer" class="flex flex-wrap gap-2 mb-2">
+                        <!-- Hashtags will be added here -->
+                    </div>
+                    <input type="text" id="hashtagInput" placeholder="Enter hashtag (without #)" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Advanced Settings -->
+                <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-lg font-medium text-gray-800">Advanced Settings</h3>
+                        <button id="toggleAdvanced" class="text-blue-500 hover:text-blue-700 text-sm">
+                            <i class="fas fa-chevron-down mr-1"></i>Show
+                        </button>
+                    </div>
+                    
+                    <div id="advancedSettings" class="hidden space-y-4">
+                        <!-- Timeout -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Timeout between requests (seconds)</label>
+                            <input type="number" min="1" max="60" value="5" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <!-- Numeric Limits -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Minimum followers</label>
+                                <input type="number" min="100" value="100" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Maximum followers</label>
+                                <input type="number" min="0" placeholder="No limit" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                        
+                        <!-- Max Profiles -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Maximum profiles to process</label>
+                            <input type="number" min="1" value="200" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <!-- Output Folder -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Output folder</label>
+                            <div class="flex">
+                                <input type="text" id="outputFolder" placeholder="C:\Instagram_Exports" class="flex-grow px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-r-md transition">
+                                    <i class="fas fa-folder-open"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Options -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3">Filter Options</h3>
+                    
+                    <div class="space-y-3">
+                        <!-- Toggle Switches -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Exclude private profiles</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                <input type="checkbox" name="excludePrivate" id="excludePrivate" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked>
+                                <label for="excludePrivate" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Exclude profiles with no profile photo</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                <input type="checkbox" name="excludeNoPhoto" id="excludeNoPhoto" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked>
+                                <label for="excludeNoPhoto" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Exclude profiles with 0 posts</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                <input type="checkbox" name="excludeNoPosts" id="excludeNoPosts" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked>
+                                <label for="excludeNoPosts" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Exclude usernames with >4 digits</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                <input type="checkbox" name="excludeLongNumbers" id="excludeLongNumbers" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked>
+                                <label for="excludeLongNumbers" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Allow profiles with external links</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                <input type="checkbox" name="allowExternalLinks" id="allowExternalLinks" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked>
+                                <label for="allowExternalLinks" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Resume from last search</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                <input type="checkbox" name="resumeSearch" id="resumeSearch" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer">
+                                <label for="resumeSearch" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Actions & Results -->
+            <div class="space-y-6">
+                <!-- Start Search Card -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Actions</h2>
+                    
+                    <button id="startSearchBtn" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition flex items-center justify-center space-x-2">
+                        <i class="fas fa-search"></i>
+                        <span>Start Search</span>
+                    </button>
+                    
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Save configuration as</label>
+                        <div class="flex">
+                            <input type="text" placeholder="MyConfig" class="flex-grow px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-r-md transition">
+                                <i class="fas fa-save"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Load configuration</label>
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option>Select a saved configuration</option>
+                            <option>MyConfig</option>
+                            <option>ItalianUsers</option>
+                            <option>EnglishUsers</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Results Preview Card -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Results Preview</h2>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4 h-64 overflow-y-auto scrollbar-hide">
+                        <div id="resultsContainer" class="space-y-3">
+                            <p class="text-gray-500 text-center py-10">Your search results will appear here</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Found: <span id="resultsCount">0</span> profiles</span>
+                        <button id="exportBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition flex items-center space-x-2 disabled:opacity-50" disabled>
+                            <i class="fas fa-file-excel"></i>
+                            <span>Export to Excel</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Status Card -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Status</h2>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+                            <span class="text-sm text-gray-700">Ready to start</span>
+                        </div>
+                        
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-circle text-yellow-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-yellow-700">
+                                        For best results, keep timeout between 5-10 seconds to avoid Instagram blocks.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 overflow-y-auto hidden z-50">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Instagram Login</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                    <input type="text" id="loginUsername" placeholder="Throwaway account username" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                    <input type="password" id="loginPassword" placeholder="(Not stored)" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <p class="text-xs text-gray-500 mt-1">Credentials are not stored and will be forgotten when you close the app</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="saveSession" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <label for="saveSession" class="ml-2 block text-sm text-gray-700">
+                                        Keep me logged in (session only)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirmLoginBtn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Login
+                    </button>
+                    <button type="button" id="closeLoginModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="fixed inset-0 overflow-y-auto hidden z-50">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Search History</h3>
+                            <div class="overflow-y-auto max-h-96">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Config</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Results</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2023-07-15 14:30</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">ItalianUsers</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">187 profiles</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
+                                                <a href="#" class="text-green-600 hover:text-green-900">Re-run</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2023-07-10 09:15</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">EnglishUsers</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">143 profiles</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
+                                                <a href="#" class="text-green-600 hover:text-green-900">Re-run</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2023-07-05 16:45</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">MyConfig</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">200 profiles</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
+                                                <a href="#" class="text-green-600 hover:text-green-900">Re-run</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="closeHistoryModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 overflow-y-auto hidden z-50">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Application Settings</h3>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Default output folder</label>
+                                    <div class="flex">
+                                        <input type="text" value="C:\Instagram_Exports" class="flex-grow px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-r-md transition">
+                                            <i class="fas fa-folder-open"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Default maximum profiles</label>
+                                    <input type="number" min="1" value="200" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Default timeout (seconds)</label>
+                                    <input type="number" min="1" max="60" value="5" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Enable automatic updates</span>
+                                    <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                        <input type="checkbox" name="autoUpdate" id="autoUpdate" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked>
+                                        <label for="autoUpdate" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Enable error logging</span>
+                                    <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                        <input type="checkbox" name="errorLogging" id="errorLogging" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked>
+                                        <label for="errorLogging" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="saveSettingsBtn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Save Settings
+                    </button>
+                    <button type="button" id="closeSettingsModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const loginBtn = document.getElementById('loginBtn');
+        const loginModal = document.getElementById('loginModal');
+        const closeLoginModal = document.getElementById('closeLoginModal');
+        const confirmLoginBtn = document.getElementById('confirmLoginBtn');
+        const loginUsername = document.getElementById('loginUsername');
+        const loginPassword = document.getElementById('loginPassword');
+        const saveSession = document.getElementById('saveSession');
+        const loginSection = document.getElementById('loginSection');
+        
+        const historyBtn = document.getElementById('historyBtn');
+        const historyModal = document.getElementById('historyModal');
+        const closeHistoryModal = document.getElementById('closeHistoryModal');
+        
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeSettingsModal = document.getElementById('closeSettingsModal');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        
+        const toggleAdvanced = document.getElementById('toggleAdvanced');
+        const advancedSettings = document.getElementById('advancedSettings');
+        
+        const addKeywordBtn = document.getElementById('addKeywordBtn');
+        const keywordInput = document.getElementById('keywordInput');
+        const keywordsContainer = document.getElementById('keywordsContainer');
+        
+        const addAccountBtn = document.getElementById('addAccountBtn');
+        const accountInput = document.getElementById('accountInput');
+        const accountsContainer = document.getElementById('accountsContainer');
+        
+        const addHashtagBtn = document.getElementById('addHashtagBtn');
+        const hashtagInput = document.getElementById('hashtagInput');
+        const hashtagsContainer = document.getElementById('hashtagsContainer');
+        
+        const startSearchBtn = document.getElementById('startSearchBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsCount = document.getElementById('resultsCount');
+
+        // Sample data for demonstration
+        const sampleResults = [
+            {
+                username: "travel_italy",
+                bio: "Exploring Italy one city at a time 🇮🇹 | Photography | Travel tips",
+                followers: "12.5k",
+                link: "https://instagram.com/travel_italy",
+                source: "From hashtag #italy"
+            },
+            {
+                username: "foodlover_rome",
+                bio: "Italian food enthusiast | Rome based | Sharing the best pasta spots 🍝",
+                followers: "8.2k",
+                link: "https://instagram.com/foodlover_rome",
+                source: "From account @italianfood"
+            },
+            {
+                username: "venice_views",
+                bio: "Daily photos of Venice | Gondolas | Canals | #venice",
+                followers: "15.7k",
+                link: "https://instagram.com/venice_views",
+                source: "From hashtag #venice"
+            }
+        ];
+
+        // Event Listeners
+        loginBtn.addEventListener('click', () => {
+            loginModal.classList.remove('hidden');
+        });
+
+        closeLoginModal.addEventListener('click', () => {
+            loginModal.classList.add('hidden');
+        });
+
+        confirmLoginBtn.addEventListener('click', () => {
+            const username = loginUsername.value.trim();
+            const password = loginPassword.value.trim();
+            
+            if (!username || !password) {
+                alert('Please enter both username and password');
+                return;
+            }
+            
+            // In a real app, this would authenticate with Instagram
+            loginSection.innerHTML = `
+                <i class="fas fa-user-check text-green-600"></i>
+                <span class="text-gray-700">${username}</span>
+                <button id="logoutBtn" class="ml-2 text-red-500 hover:text-red-700">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            `;
+            
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                loginSection.innerHTML = `
+                    <i class="fas fa-user text-gray-600"></i>
+                    <span class="text-gray-700">Not logged in</span>
+                    <button id="loginBtn" class="ml-2 text-blue-500 hover:text-blue-700">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                `;
+                document.getElementById('loginBtn').addEventListener('click', () => {
+                    loginModal.classList.remove('hidden');
+                });
+            });
+            
+            loginModal.classList.add('hidden');
+            loginUsername.value = '';
+            loginPassword.value = '';
+        });
+
+        historyBtn.addEventListener('click', () => {
+            historyModal.classList.remove('hidden');
+        });
+
+        closeHistoryModal.addEventListener('click', () => {
+            historyModal.classList.add('hidden');
+        });
+
+        settingsBtn.addEventListener('click', () => {
+            settingsModal.classList.remove('hidden');
+        });
+
+        closeSettingsModal.addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+        });
+
+        saveSettingsBtn.addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+            // In a real app, save settings here
+        });
+
+        toggleAdvanced.addEventListener('click', () => {
+            const isHidden = advancedSettings.classList.contains('hidden');
+            if (isHidden) {
+                advancedSettings.classList.remove('hidden');
+                toggleAdvanced.innerHTML = '<i class="fas fa-chevron-up mr-1"></i>Hide';
+            } else {
+                advancedSettings.classList.add('hidden');
+                toggleAdvanced.innerHTML = '<i class="fas fa-chevron-down mr-1"></i>Show';
+            }
+        });
+
+        addKeywordBtn.addEventListener('click', () => {
+            addItem(keywordInput, keywordsContainer, 'keyword');
+        });
+
+        keywordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addItem(keywordInput, keywordsContainer, 'keyword');
+            }
+        });
+
+        addAccountBtn.addEventListener('click', () => {
+            addItem(accountInput, accountsContainer, 'account');
+        });
+
+        accountInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addItem(accountInput, accountsContainer, 'account');
+            }
+        });
+
+        addHashtagBtn.addEventListener('click', () => {
+            addItem(hashtagInput, hashtagsContainer, 'hashtag');
+        });
+
+        hashtagInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addItem(hashtagInput, hashtagsContainer, 'hashtag');
+            }
+        });
+
+        startSearchBtn.addEventListener('click', () => {
+            // Simulate search
+            resultsContainer.innerHTML = '';
+            sampleResults.forEach(result => {
+                addResultItem(result);
+            });
+            resultsCount.textContent = sampleResults.length;
+            exportBtn.disabled = false;
+        });
+
+        exportBtn.addEventListener('click', () => {
+            // In a real app, export to Excel here
+            alert('Export to Excel functionality would be implemented here in a real application.');
+        });
+
+        // Functions
+        function addItem(inputElement, container, type) {
+            const value = inputElement.value.trim();
+            if (value === '') return;
+            
+            const item = document.createElement('div');
+            item.className = 'flex items-center bg-gray-100 rounded-full px-3 py-1 text-sm';
+            
+            const text = document.createElement('span');
+            text.className = 'mr-2';
+            let displayText = type === 'hashtag' ? `#${value}` : 
+                            type === 'account' ? `@${value}` : value;
+            
+            if (type === 'keyword') {
+                const lang = document.getElementById('keywordLanguage').value;
+                if (lang !== 'any') {
+                    displayText += ` (${lang.toUpperCase()})`;
+                }
+            }
+            
+            text.textContent = displayText;
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'text-gray-500 hover:text-gray-700';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.addEventListener('click', () => {
+                container.removeChild(item);
+            });
+            
+            item.appendChild(text);
+            item.appendChild(removeBtn);
+            container.appendChild(item);
+            
+            inputElement.value = '';
+            inputElement.focus();
+        }
+
+        function addResultItem(result) {
+            const item = document.createElement('div');
+            item.className = 'bg-gray-50 p-3 rounded-lg border border-gray-200';
+            
+            item.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-medium text-blue-600">${result.username}</h4>
+                        <p class="text-sm text-gray-600 mt-1">${result.bio}</p>
+                    </div>
+                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">${result.followers} followers</span>
+                </div>
+                <div class="mt-2 flex justify-between items-center">
+                    <a href="${result.link}" target="_blank" class="text-xs text-gray-500 hover:text-gray-700">${result.link}</a>
+                    <span class="text-xs text-gray-400">${result.source}</span>
+                </div>
+            `;
+            
+            resultsContainer.appendChild(item);
+        }
+
+        // Initialize with some sample items
+        ['italy', 'travel', 'food'].forEach(keyword => {
+            keywordInput.value = keyword;
+            addItem(keywordInput, keywordsContainer, 'keyword');
+        });
+
+        ['italianfood', 'visititaly'].forEach(account => {
+            accountInput.value = account;
+            addItem(accountInput, accountsContainer, 'account');
+        });
+
+        ['italy', 'rome', 'venice'].forEach(hashtag => {
+            hashtagInput.value = hashtag;
+            addItem(hashtagInput, hashtagsContainer, 'hashtag');
+        });
+    </script>
+</body>
+</html>
